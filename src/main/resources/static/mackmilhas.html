@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>MackMilhas</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css">
+</head>
+
+<body>
+<h1>Mack Milhas</h1>
+
+<table id="tabelaFormulario">
+    <tr> <td>ID:</td> <td><input type="text" id="txtId"></td> </tr>
+    <tr> <td>Origem:</td> <td><input type="text" id="txtOrigem"></td> </tr>
+    <tr> <td>Destino:</td> <td><input type="text" id="txtDestino"></td> </tr>
+    <tr> <td>Data:</td> <td><input type="text" id="txtData"></td> </tr>
+    <tr> <td>Preço:</td> <td><input type="text" id="txtPreco"></td> </tr>
+    <tr><td></td><td>
+        <input type="button" value="Salvar" onclick="salvarPassagem()" id="btnSalvar">
+        <input type="button" value="Apagar" onclick="apagarPassagem()" id="btnApagar">
+        <input type="button" value="Cancelar" onclick="cancelarEdicao()" class="btnCancelar">
+    </td></tr>
+</table>
+
+<table id="tabelaFazerReserva">
+    <tr> <td>Login:</td> <td><input type="text" id="txtLogin"></td> </tr>
+    <tr> <td>Senha:</td> <td><input type="password" id="txtSenha"></td> </tr>
+    <tr><td></td><td>
+        <input type="button" value="Entrar" onclick="fazerLogin()" id="btnEntrar">
+        <input type="button" value="Cancelar" onclick="cancelarEdicao()" class="btnCancelar">
+    </td></tr>
+</table>
+<p style="font-weight:bold" id="paragrafoMensagem"></p>
+<div id="buttons">
+    <input type="button" value="Cadastrar passagem" onclick="novaPassagem()" id="btnNovo">
+    <input type="button" value="Fazer reserva" onclick="fazerReserva()" id="fazerReserva" >
+
+</div>
+<table id="tabelaPassagens">
+    <tr> <th>ID</th> <th>Origem</th> <th>Destino</th> <th>Data</th> <th>Preço</th> </tr>
+    <tbody id="corpoTabelaPassagens"> </tbody>
+</table>
+
+<script src="rest.js"></script>
+<script>
+    const tabelaPassagens = document.querySelector('#tabelaPassagens');
+    const tabelaFormulario = document.querySelector('#tabelaFormulario');
+    const tabelaFazerReserva = document.querySelector('#tabelaFazerReserva');
+    const corpoTabela = document.querySelector('#corpoTabelaPassagens');
+    const paragrafoMensagem = document.querySelector('#paragrafoMensagem');
+    const txtOrigem= document.querySelector('#txtOrigem');
+    const txtDestino = document.querySelector('#txtDestino');
+    const txtData = document.querySelector('#txtData');
+    const txtPreco = document.querySelector('#txtPreco');
+    const txtId = document.querySelector('#txtId');
+
+    const nome = document.querySelector('#txtLogin');
+    const senha = document.querySelector('#txtSenha');
+
+    const div = document.querySelector('#buttons');
+    const btnNovo = document.querySelector('#btnNovo');
+    const btnSalvar = document.querySelector('#btnSalvar');
+    const btnApagar = document.querySelector('#btnApagar');
+    const btnCancelar = document.querySelector('.btnCancelar');
+    var criandoNovaPassagem = false;
+
+    inicializar();
+
+    function inicializar() {
+        criandoNovaPassagem = false;
+        paragrafoMensagem.textContent = 'Pressione o botão Novo ou selecione um professor da lista:'
+        txtId.value = '';
+        txtOrigem.value = '';
+        txtDestino.value = '';
+        txtData.value = '';
+        txtPreco.value = '';
+        txtId.disabled = true;
+        txtOrigem.disabled = true;
+        txtDestino.disabled = true;
+        txtData.disabled = true;
+        txtPreco.disabled = true;
+
+        btnNovo.disabled = false;
+        btnSalvar.disabled = true;
+        btnApagar.disabled = true;
+        btnCancelar.disabled = true;
+
+                    div.style.display = 'inline';
+
+        tabelaFormulario.style.display = 'none';
+        tabelaFazerReserva.style.display = 'none';
+        tabelaPassagens.style.display = 'inline';
+            listarTodasReservas();
+    }
+
+    function listarTodasReservas() {
+                const errorHandler = function(error) {
+                paragrafoMensagem.textContent = "Erro ao listar reservas (código " + error.message + ")";
+            }
+        asyncLerPassagem(preencherTabela, errorHandler);
+    }
+
+    function preencherTabela(passagem) {
+                    corpoTabela.innerHTML = "";
+        var n = passagem.length;
+        for (var i = 0; i < n; i++) {
+            let p = passagem[i];
+            let linha = corpoTabela.insertRow();
+            let celulaId = linha.insertCell();
+            let celulaOrigem = linha.insertCell();
+            let celulaDestino = linha.insertCell();
+            let celulaData = linha.insertCell();
+            let celulaPreco = linha.insertCell();
+
+            let alink = document.createElement('a');
+            alink.textContent = p.id_passagem;
+            alink.href = "javascript:void(0)";
+            alink.onclick =  function() { selecionarPassagem(p.id_passagem); };
+            celulaId.appendChild(alink);
+            celulaOrigem.textContent = p.origem;
+            celulaDestino.textContent = p.destino;
+            celulaData.textContent = p.data;
+            celulaPreco.textContent = p.preco;
+        }
+    }
+
+    function selecionarPassagem(id) {
+        criandoNovaPassagem = false;
+        const errorHandler = function(error) {
+            paragrafoMensagem.textContent = "Erro ao selecionar reserva (código " + error.message + ")";
+        }
+        asyncLerPassagemById(id, preencherFormulario, errorHandler);
+    }
+
+
+    function preencherFormulario(passagem) {
+        paragrafoMensagem.textContent = 'Altere e salve os dados da passagem, ou então apague o registro da passagem.'
+        txtId.value = passagem.id_passagem;
+        txtOrigem.value = passagem.origem;
+        txtDestino.value = passagem.destino;
+        txtData.value = passagem.data;
+        txtPreco.value = passagem.preco;
+
+        txtId.disabled = false;
+        txtOrigem.disabled = false;
+        txtDestino.disabled = false;
+        txtData.disabled = false;
+        txtPreco.disabled = false;
+
+        btnNovo.disabled = true;
+        btnSalvar.disabled = false;
+        btnApagar.disabled = false;
+        btnCancelar.disabled = false;
+
+        tabelaFormulario.style.display = 'inline';
+        tabelaPassagens.style.display = 'none';
+    }
+
+    function novaPassagem() {
+
+        paragrafoMensagem.textContent = 'Preencha os dados da nova passagem...';
+        criandoNovaPassagem = true;
+
+        txtId.value = '';
+        txtOrigem.value = '';
+        txtDestino.value = '';
+        txtData.value = '';
+        txtPreco.value = '';
+
+        txtId.disabled = true;
+        txtOrigem.disabled = false;
+        txtDestino.disabled = false;
+        txtData.disabled = false;
+        txtPreco.disabled = false;
+
+
+         buttons.style.display = 'none';
+        btnNovo.disabled = true;
+        btnSalvar.disabled = false;
+        btnApagar.disabled = true;
+        btnCancelar.disabled = false;
+
+        tabelaFormulario.style.display = 'inline';
+        tabelaPassagens.style.display = 'none';
+        tabelaFazerReserva.style.display = 'none';
+    }
+    function fazerReserva() {
+        paragrafoMensagem.textContent = 'Faça o login...';
+
+        txtId.disabled = true;
+        txtOrigem.disabled = false;
+        txtDestino.disabled = false;
+        txtData.disabled = false;
+        txtPreco.disabled = false;
+
+        btnNovo.disabled = true;
+        btnSalvar.disabled = false;
+        btnApagar.disabled = true;
+        btnCancelar.disabled = false;
+
+        buttons.style.display = 'none';
+        tabelaFormulario.style.display = 'none';
+        tabelaPassagens.style.display = 'none';
+        tabelaFazerReserva.style.display = 'inline';
+    }
+
+    function salvarPassagem() {
+        if (criandoNovaPassagem) {
+            criarPassagem();
+        }
+        else {
+            alterarPassagem();
+        }
+    }
+
+    function criarPassagem() {
+        const dadosPassagem = {
+            'origem': txtOrigem.value,
+            'destino': txtDestino.value,
+            'data': txtData.value,
+            'preco': txtPreco.value
+        };
+        const errorHandler = function(error) {
+            paragrafoMensagem.textContent = 'Erro ao criar nova passagem (código ' + error.message + ')';
+        }
+        asyncCriarPassagem(dadosPassagem, inicializar, errorHandler);
+    }
+
+async function fazerLogin() {
+    try {
+        const loginResult = await asyncFazerLogin(nome.value, senha.value);
+        if (loginResult) {
+            tabelaPassagens.style.display = 'inline';
+        } else {
+            paragrafoMensagem.textContent = 'Login failed. Please try again.';
+        }
+    } catch (error) {
+        console.error("Erro ao fazer login:", error);
+        paragrafoMensagem.textContent = 'Ocorreu um erro ao fazer login. Por favor, tente novamente.';
+    }
+}
+
+
+    function alterarPassagem() {
+        const errorHandler = function(error) {
+            paragrafoMensagem.textContent = 'Erro ao alterar passagem (código ' + error.message + ')';
+        }
+        const dadosPassagem = {
+            'id_passagem': txtId.value,
+            'origem': txtOrigem.value,
+            'destino': txtDestino.value,
+            'data': txtData.value,
+            'preco': txtPreco.value
+        };
+        asyncAlterarPassagem(dadosPassagem, inicializar, errorHandler);
+    }
+
+    function cancelarEdicao() {
+                inicializar();
+    }
+
+    function apagarPassagem() {
+        const id = txtId.value;
+                const errorHandler = function(error) {
+                    paragrafoMensagem.textContent = 'Erro ao apagar passagem (código ' + error.message + ')';
+                }
+        asyncApagarPassagem(id, inicializar, errorHandler);
+    }
+
+</script>
+</body>
+
+</html>
+
+    
