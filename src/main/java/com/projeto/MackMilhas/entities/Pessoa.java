@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id_pessoa")
@@ -30,5 +31,11 @@ public class Pessoa implements Serializable {
 
     @OneToMany(mappedBy = "pessoa")
     private List<Reserva> lista_de_reservas;
+
+    public Pessoa(Long id_pessoa, String nome, String senha) {
+        this.id_pessoa = id_pessoa;
+        this.nome = nome;
+        this.senha = senha;
+    }
 
 }

@@ -2,8 +2,10 @@ package com.projeto.MackMilhas.controllers;
 
 import com.projeto.MackMilhas.entities.Pessoa;
 import com.projeto.MackMilhas.repositories.PessoaRepo;
+import com.projeto.MackMilhas.services.PessoaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -13,45 +15,45 @@ import java.util.Optional;
 @RestController
 public class PessoaController {
     @Autowired
-    private PessoaRepo pessoaRepo;
+    private PessoaService pessoaService;
     public PessoaController() {}
 
 
     @GetMapping("/pessoa")
     Iterable<Pessoa> getPessoa() {
-        return pessoaRepo.findAll();
+        return pessoaService.listAll();
     }
 
     @GetMapping("/pessoa/{id}")
     Optional<Pessoa> getPessoa(@PathVariable(required = true, name="id") long id){
-        return pessoaRepo.findById(id);
+        return Optional.ofNullable(pessoaService.findById(id));
     }
 
     @PostMapping("/pessoa")
     Pessoa createPessoa(@RequestBody Pessoa p) {
-        return pessoaRepo.save(p);
+        return pessoaService.salvaPessoa(p);
     }
 
     @PostMapping("/login")
-    public Boolean login(@RequestBody final String nome, final String senha) {
-        Pessoa p = this.pessoaRepo.findByNomeContainingIgnoreCase(nome);
-        if(p != null){
-            return p.getSenha().equals(senha);
+    //public ResponseEntity<Pessoa> login(@RequestParam String nome, @RequestParam String senha) {
+    public ResponseEntity<Pessoa> login(@RequestBody Pessoa p) {
+        Pessoa pessoa = this.pessoaService.buscaPorNome(p.getNome());
+        if(pessoa != null){
+            if(pessoa.getSenha().equals(p.getSenha())){
+                return ResponseEntity.status(HttpStatus.OK).body(pessoa);
+            }
         }
-        return false;
+         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
     @PutMapping("/pessoa/{id}")
     Optional<Pessoa> updatePessoa(@RequestBody Pessoa pessoa, @PathVariable(required = true, name="id") long id) {
-        Optional<Pessoa> opt = this.getPessoa(id);
-        if(opt.isPresent() && Objects.equals(opt.get().getId_pessoa(), pessoa.getId_pessoa())) {
-            return Optional.of(pessoaRepo.save(pessoa));
-        }
+        Pessoa pessoaAtualizada = pessoaService.atualizaPessoa(id, pessoa);
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Erro ao alterar dados do prefessor com id " + id);
     }
 
     @DeleteMapping(value = "/pessoa/{id}")
     void deletePessoa(@PathVariable(required = true, name = "id") long id) {
-        pessoaRepo.deleteById(id);
+        pessoaService.deletaPessoa(id);
     }
 }

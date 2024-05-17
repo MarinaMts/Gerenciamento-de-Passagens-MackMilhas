@@ -7,5 +7,5 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
 public interface PessoaRepo extends JpaRepository<Pessoa, Long> {
-    Pessoa findByNomeContainingIgnoreCase(String nome);
+    Pessoa findByNome(String nome);
 }

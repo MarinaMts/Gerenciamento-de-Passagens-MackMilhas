@@ -8,6 +8,7 @@ public class MackMilhasApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MackMilhasApplication.class, args);
+
 	}
 
 }

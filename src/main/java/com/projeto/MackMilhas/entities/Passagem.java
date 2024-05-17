@@ -9,13 +9,15 @@ import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
 
 @Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(of = "id_passagem")
 @Entity
 @Table(name = "passagem")
@@ -34,8 +36,7 @@ public class Passagem implements Serializable {
     private String destino;
 
     @DateTimeFormat(pattern = "dd/MM/yyyy")
-    @FutureOrPresent
-    private Date data;
+    private LocalDate data;
 
     @NotNull
     private Double preco;
@@ -43,4 +44,11 @@ public class Passagem implements Serializable {
     @OneToOne(mappedBy = "passagem", cascade = CascadeType.ALL)
     private Reserva reserva;
 
+    public Passagem(Long id_passagem, String origem, String destino, String data, Double preco) {
+        this.id_passagem = id_passagem;
+        this.origem = origem;
+        this.destino = destino;
+        this.data = LocalDate.parse(data, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        this.preco = preco;
+    }
 }
