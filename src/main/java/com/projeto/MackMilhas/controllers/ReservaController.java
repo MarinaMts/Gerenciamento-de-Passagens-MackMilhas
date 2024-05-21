@@ -7,17 +7,17 @@ import com.projeto.MackMilhas.entities.Reserva;
 import com.projeto.MackMilhas.services.PassagemService;
 import com.projeto.MackMilhas.services.PessoaService;
 import com.projeto.MackMilhas.services.ReservaService;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @RestController
+@RequestMapping("/reserva")
 public class ReservaController {
+
     @Autowired
     private ReservaService reservaService;
 
@@ -27,44 +27,65 @@ public class ReservaController {
     @Autowired
     private PassagemService passagemService;
 
-    public ReservaController() {}
-
-    @GetMapping("/reserva")
-    Iterable<Reserva> getReserva() {
+    @GetMapping
+    public Iterable<Reserva> getReservas() {
         return reservaService.listAll();
     }
 
-    @GetMapping("/reserva/{id}")
-    Optional<Reserva> getReserva(@PathVariable(required = true, name="id") long id){
-        return Optional.ofNullable(reservaService.findById(id));
+    @GetMapping("/{id}")
+    public ResponseEntity<Reserva> getReserva(@PathVariable long id) {
+        Optional<Reserva> reserva = Optional.ofNullable(reservaService.findById(id));
+        return reserva.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
 
-//    @PostMapping("/reserva")
-//    ResponseEntity<Reserva> createReserva(@RequestBody Reserva r, @RequestBody Pessoa p, @RequestBody Passagem pass) {
-//        Pessoa pessoa = this.pessoaService.findById(p.getId_pessoa());
-//        Passagem passagem = this.passagemService.findById(pass.getId_passagem());
-//        if(pessoa != null && passagem != null) {
-//            Reserva reservaCriada = reservaService.salvaReserva(r);
-//            return ResponseEntity.status(HttpStatus.CREATED).body(reservaCriada);
-//        } else {
+//    @PostMapping
+//    public ResponseEntity<Reserva> criarReserva(@RequestBody ReservaDto reservaDto) {
+//        try {
+//            Pessoa pessoa = pessoaService.findById(reservaDto.getPessoaId());
+//            Passagem passagem = passagemService.findById(reservaDto.getPassagemId());
+//
+//            System.out.println(reservaDto.getPessoaId());
+//            if (pessoa != null && passagem != null) {
+//                Long id_pessoa_reserva = pessoa.getId_pessoa();
+//                Long id_passagem_reserva = passagem.getId_passagem();
+//
+//                Reserva reserva = new Reserva();
+//                reserva.setPessoa(id_pessoa_reserva);
+//                reserva.setPassagem(id_passagem_reserva);
+//
+//                Reserva novaReserva = reservaService.salvaReserva(reserva);
+//                return ResponseEntity.status(HttpStatus.CREATED).body(novaReserva);
+//
+//            }
+//
 //            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 //        }
 //    }
-    @PostMapping("/reserva")
-    public ResponseEntity<Reserva> criarReserva(@RequestBody ReservaDto reservaDto) {
-        Pessoa pessoa = pessoaService.findById(reservaDto.getPessoaId());
-        Passagem passagem = passagemService.findById(reservaDto.getPassagemId());
-
-        if(pessoa != null && passagem != null){
-            Reserva reserva = new Reserva();
-            reserva.setPessoa(pessoa);
-            reserva.setPassagem(passagem);
-
-            Reserva novaReserva = reservaService.salvaReserva(reserva);
-            return ResponseEntity.status(HttpStatus.CREATED).body(novaReserva);
-        }else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-    }
+//
+//    @PostMapping
+//    public ResponseEntity<Reserva> criarReserva(@RequestBody ReservaDto reservaDto) {
+//        try {
+//            Pessoa pessoa = pessoaService.findById(reservaDto.getPessoaId());
+//            Passagem passagem = passagemService.findById(reservaDto.getPassagemId());
+//
+//            if (pessoa == null || passagem == null) {
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+//            }
+//
+//            Reserva reserva = new Reserva();
+//            reserva.setPessoa(pessoa);
+//            reserva.setPassagem(passagem);
+//
+//            Reserva novaReserva = reservaService.salvaReserva(reserva);
+//            return ResponseEntity.status(HttpStatus.CREATED).body(novaReserva);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+//        }
+//    }
 
 }

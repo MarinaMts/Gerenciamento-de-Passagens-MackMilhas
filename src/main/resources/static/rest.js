@@ -31,7 +31,7 @@ async function asyncLerPassagemById(id, proxsucesso, proxerro) {
 }
 
 async function asyncAlterarPassagem(dadosPassagem, proxsucesso, proxerro) {
-    const URL = `/passagem/${dadosPassagem.id}`;
+    const URL = `/passagem/${dadosPassagem.id_passagem}`;
     const putRequest = {
         method: 'PUT',
         headers: { 'Content-type': 'application/json' },
@@ -69,27 +69,38 @@ async function asyncFazerLogin(nome, senha) {
         data = await response.json();
 
         console.log(data);
-        return true;
+        return data, true;
     } catch (error) {
         console.error("erro ao fazer requisição", error);
         return false;
     }
 }
-
-async function asyncFazerReserva(idPassagem, proxsucesso, proxerro) {
-    const URL = `/reserva/${idPassagem}`;
+async function asyncFazerReserva(idPassagem, successHandler, errorHandler) {
+    const URL = `/reserva`;
     const dadosReserva = {
-        'id_pessoa': data[0],
-        'id_passagem': idPassagem
-    }
+        'pessoaId': data.id_pessoa,
+        'passagemId': idPassagem
+    };
+    console.log('Enviando dados para o servidor:', dadosReserva);
+
     const postRequest = {
         method: 'POST',
         body: JSON.stringify(dadosReserva),
         headers: { 'Content-type': 'application/json' }
     };
+
     fetch(URL, postRequest)
-        .then(resposta => { if (!resposta.ok) throw Error(resposta.status); return resposta; } )
-        .then(resposta => resposta.json())
-        .then(jsonResponse => proxsucesso())
-        .catch(proxerro);
+        .then(resposta => {
+            console.log('Resposta recebida:', resposta);
+            if (!resposta.ok) throw Error(resposta.status);
+            return resposta.json();
+        })
+        .then(jsonResponse => {
+            console.log('Resposta JSON:', jsonResponse);
+            successHandler();
+        })
+        .catch(error => {
+            console.error('Erro durante o fetch:', error);
+            errorHandler(error);
+        });
 }

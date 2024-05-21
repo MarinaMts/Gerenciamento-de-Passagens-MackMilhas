@@ -11,7 +11,7 @@
 <h1>Mack Milhas</h1>
 
 <table id="tabelaFormulario">
-    <tr> <td>ID:</td> <td><input type="text" id="txtId"></td> </tr>
+    <tr style="display: none;"> <td>ID:</td> <td><input type="text" id="txtId"></td > </tr >
     <tr> <td>Origem:</td> <td><input type="text" id="txtOrigem"></td> </tr>
     <tr> <td>Destino:</td> <td><input type="text" id="txtDestino"></td> </tr>
     <tr> <td>Data:</td> <td><input type="text" id="txtData"></td> </tr>
@@ -23,7 +23,7 @@
     </td></tr>
 </table>
 
-<table id="tabelaFazerReserva">
+<table id="login">
     <tr> <td>Login:</td> <td><input type="text" id="txtLogin"></td> </tr>
     <tr> <td>Senha:</td> <td><input type="password" id="txtSenha"></td> </tr>
     <tr><td></td><td>
@@ -38,7 +38,7 @@
 
 </div>
 <table id="tabelaPassagens">
-    <tr> <th>ID</th> <th>Origem</th> <th>Destino</th> <th>Data</th> <th>Preço</th> </tr>
+    <tr> <th>ID</th> <th>Origem</th> <th>Destino</th> <th>Data</th> <th>Preço</th> <th>Reservar</th> </tr>
     <tbody id="corpoTabelaPassagens"> </tbody>
 </table>
 
@@ -46,7 +46,7 @@
 <script>
     const tabelaPassagens = document.querySelector('#tabelaPassagens');
     const tabelaFormulario = document.querySelector('#tabelaFormulario');
-    const tabelaFazerReserva = document.querySelector('#tabelaFazerReserva');
+    const login = document.querySelector('#login');
     const corpoTabela = document.querySelector('#corpoTabelaPassagens');
     const paragrafoMensagem = document.querySelector('#paragrafoMensagem');
     const txtOrigem= document.querySelector('#txtOrigem');
@@ -69,7 +69,6 @@
 
     function inicializar() {
         criandoNovaPassagem = false;
-        paragrafoMensagem.textContent = 'Pressione o botão Novo ou selecione um professor da lista:'
         txtId.value = '';
         txtOrigem.value = '';
         txtDestino.value = '';
@@ -86,23 +85,23 @@
         btnApagar.disabled = true;
         btnCancelar.disabled = true;
 
-                    div.style.display = 'inline';
+        div.style.display = 'inline';
 
         tabelaFormulario.style.display = 'none';
-        tabelaFazerReserva.style.display = 'none';
-        tabelaPassagens.style.display = 'inline';
-            listarTodasReservas();
+        login.style.display = 'none';
+        tabelaPassagens.style.display = 'none';
+        listarTodasPassagens();
     }
 
-    function listarTodasReservas() {
-                const errorHandler = function(error) {
-                paragrafoMensagem.textContent = "Erro ao listar reservas (código " + error.message + ")";
-            }
+    function listarTodasPassagens() {
+        const errorHandler = function(error) {
+            paragrafoMensagem.textContent = "Erro ao listar passagens (código " + error.message + ")";
+        }
         asyncLerPassagem(preencherTabela, errorHandler);
     }
 
     function preencherTabela(passagem) {
-                    corpoTabela.innerHTML = "";
+        corpoTabela.innerHTML = "";
         var n = passagem.length;
         for (var i = 0; i < n; i++) {
             let p = passagem[i];
@@ -112,16 +111,24 @@
             let celulaDestino = linha.insertCell();
             let celulaData = linha.insertCell();
             let celulaPreco = linha.insertCell();
+            let celulaReservar = linha.insertCell();
 
             let alink = document.createElement('a');
+            let reservarBtn = document.createElement('button');
             alink.textContent = p.id_passagem;
+            reservarBtn.textContent = "Reservar";
             alink.href = "javascript:void(0)";
-            alink.onclick =  function() { selecionarPassagem(p.id_passagem); };
+            reservarBtn.href = "javascript:void(0)";
+
+            alink.onclick = function() { selecionarPassagem(p.id_passagem); };
+            reservarBtn.onclick = function() { reservarPassagem(p.id_passagem); };
+
             celulaId.appendChild(alink);
             celulaOrigem.textContent = p.origem;
             celulaDestino.textContent = p.destino;
             celulaData.textContent = p.data;
             celulaPreco.textContent = p.preco;
+            celulaReservar.appendChild(reservarBtn);
         }
     }
 
@@ -174,8 +181,8 @@
         txtData.disabled = false;
         txtPreco.disabled = false;
 
-
-         buttons.style.display = 'none';
+        txtId.style.display = 'none';
+        buttons.style.display = 'none';
         btnNovo.disabled = true;
         btnSalvar.disabled = false;
         btnApagar.disabled = true;
@@ -183,7 +190,7 @@
 
         tabelaFormulario.style.display = 'inline';
         tabelaPassagens.style.display = 'none';
-        tabelaFazerReserva.style.display = 'none';
+        login.style.display = 'none';
     }
     function fazerReserva() {
         paragrafoMensagem.textContent = 'Faça o login...';
@@ -202,15 +209,43 @@
         buttons.style.display = 'none';
         tabelaFormulario.style.display = 'none';
         tabelaPassagens.style.display = 'none';
-        tabelaFazerReserva.style.display = 'inline';
+        login.style.display = 'inline';
+    }
+
+    function validarDados() {
+        const origem = txtOrigem.value.trim();
+        const destino = txtDestino.value.trim();
+        const data = txtData.value.trim();
+        const preco = txtPreco.value.trim();
+
+        if (origem === '' || destino === '' || data === '' || preco === '') {
+            paragrafoMensagem.textContent = 'Por favor, preencha todos os campos.';
+            return false;
+        }
+
+        const dataRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dataRegex.test(data)) {
+            paragrafoMensagem.textContent = 'Por favor, insira uma data válida no formato YYYY-MM-DD.';
+            return false;
+        }
+
+
+        const precoRegex = /^\d+(\.\d{1,2})?$/;
+        if (!precoRegex.test(preco)) {
+            paragrafoMensagem.textContent = 'Por favor, insira um preço válido.';
+            return false;
+        }
+
+        return true;
     }
 
     function salvarPassagem() {
-        if (criandoNovaPassagem) {
-            criarPassagem();
-        }
-        else {
-            alterarPassagem();
+        if (validarDados()) {
+            if (criandoNovaPassagem) {
+                criarPassagem();
+            } else {
+                alterarPassagem();
+            }
         }
     }
 
@@ -227,19 +262,43 @@
         asyncCriarPassagem(dadosPassagem, inicializar, errorHandler);
     }
 
-async function fazerLogin() {
-    try {
-        const loginResult = await asyncFazerLogin(nome.value, senha.value);
-        if (loginResult) {
-            tabelaPassagens.style.display = 'inline';
-        } else {
-            paragrafoMensagem.textContent = 'Login failed. Please try again.';
+
+    function validarLogin() {
+        const login = nome.value.trim();
+        const senha = txtSenha.value.trim();
+
+        const loginRegex = /^[a-zA-Z]+$/;
+        if (!loginRegex.test(login)) {
+            paragrafoMensagem.textContent = 'Por favor, insira apenas letras no campo de login.';
+            return false;
         }
-    } catch (error) {
-        console.error("Erro ao fazer login:", error);
-        paragrafoMensagem.textContent = 'Ocorreu um erro ao fazer login. Por favor, tente novamente.';
+
+        const senhaRegex = /^[a-zA-Z0-9]+$/;
+        if (!senhaRegex.test(senha)) {
+            paragrafoMensagem.textContent = 'Por favor, insira apenas letras e números no campo de senha.';
+            return false;
+        }
+
+        return true;
     }
-}
+    async function fazerLogin() {
+        try {
+            if (validarLogin()) {
+                const loginResult = await asyncFazerLogin(nome.value, senha.value);
+                if (loginResult) {
+                    login.style.display = 'none';
+                    tabelaPassagens.style.display = 'inline';
+                    paragrafoMensagem.textContent = "Login realizado com sucesso."
+                } else {
+                    paragrafoMensagem.textContent = 'Login falhou. Por favor, tente novamente.';
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao fazer login:", error);
+            paragrafoMensagem.textContent = 'Ocorreu um erro ao fazer login. Por favor, tente novamente.';
+        }
+    }
+
 
 
     function alterarPassagem() {
@@ -257,7 +316,7 @@ async function fazerLogin() {
     }
 
     function cancelarEdicao() {
-                inicializar();
+            inicializar();
     }
 
     function apagarPassagem() {
@@ -268,9 +327,20 @@ async function fazerLogin() {
         asyncApagarPassagem(id, inicializar, errorHandler);
     }
 
+    function reservarPassagem(idPassagem) {
+        const errorHandler = function(error) {
+            paragrafoMensagem.textContent = 'Erro ao reservar passagem (código ' + error.message + ')';
+            buttons.style.display = 'inline';
+        };
+        const successHandler = function() {
+            paragrafoMensagem.textContent = 'Reserva realizada com sucesso!';
+            buttons.style.display = 'inline';
+        };
+        asyncFazerReserva(idPassagem, successHandler, errorHandler);
+    }
+
+
 </script>
 </body>
 
 </html>
-
-    

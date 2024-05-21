@@ -41,8 +41,8 @@ public class TesteConfig implements CommandLineRunner {
 
         System.out.println(pass1.getData());
 
-//        Reserva r1 = new Reserva(null, pass1.getId_passagem(), p1.getId_pessoa());
-//        Reserva r2 = new Reserva(null, pass2.getId_passagem(), p1.getId_pessoa());
+//        Reserva r1 = new Reserva(null, pass1, p1);
+//        Reserva r2 = new Reserva(null, pass2, p1);
 //
 //        reservaRepo.saveAll(Arrays.asList(r1,r2));
     }

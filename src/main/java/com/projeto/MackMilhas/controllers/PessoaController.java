@@ -49,7 +49,12 @@ public class PessoaController {
     @PutMapping("/pessoa/{id}")
     Optional<Pessoa> updatePessoa(@RequestBody Pessoa pessoa, @PathVariable(required = true, name="id") long id) {
         Pessoa pessoaAtualizada = pessoaService.atualizaPessoa(id, pessoa);
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Erro ao alterar dados do prefessor com id " + id);
+
+        if (pessoaAtualizada != null) {
+            return Optional.of(pessoaAtualizada);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Erro ao alterar dados da pessoa com ID " + id);
+        }
     }
 
     @DeleteMapping(value = "/pessoa/{id}")
